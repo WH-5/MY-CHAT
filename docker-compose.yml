@@ -1,0 +1,15 @@
+
+services:
+  database:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: whwhwhwhwhwhwhwh12321wh
+      POSTGRES_DB: user_service  # 这个默认创建
+      POSTGRES_MULTIPLE_DATABASES: "user_service,chat_service,friend_service"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
