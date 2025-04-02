@@ -1,17 +1,28 @@
+version: "3.8"
+
 services:
   database:
     image: postgres:latest
-    container_name: postgres
+    container_name: database
     restart: always
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: whwhwhwhwhwhwhwh12321wh
-      POSTGRES_DB: user_service  # 这个默认创建
+      POSTGRES_DB: user_service
       POSTGRES_MULTIPLE_DATABASES: "user_service,chat_service,friend_service"
     ports:
       - "5432:5432"
     volumes:
+      - postgres-data:/var/lib/postgresql/data  # 持久化 PostgreSQL 数据
       - ./init-scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - chat-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d user_service"]
+      interval: 10s
+      retries: 3
+      timeout: 5s
+
   redis:
     image: redis:latest
     container_name: redis
@@ -24,9 +35,42 @@ services:
       - redis-data:/data
     command: ["redis-server", "--requirepass", "123456"]
     healthcheck:
-      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "-a", "123456", "ping"]
-      interval: 30s
+      test: ["CMD", "redis-cli", "-h", "redis", "-a", "123456", "ping"]
+      interval: 10s
       retries: 3
+      timeout: 5s
+    networks:
+      - chat-network
+
+  user-service:
+    image: user-service:latest
+#    build: .
+    volumes:
+      - ./configs:/data/conf
+    container_name: user
+    restart: always
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+#    environment:
+#      - DATABASE_URL=postgres://root:whwhwhwhwhwhwhwh12321wh@database:5432/user_service?sslmode=disable
+#      - REDIS_URL=redis://:123456@redis:6379/0
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+    networks:
+      - chat-network
+
 
 volumes:
   redis-data:
+  postgres-data:
+
+
+
+networks:
+  chat-network:
+#    name: chat-network
+    driver: bridge
