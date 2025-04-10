@@ -29,23 +29,7 @@
 
 **职责：**
 管理用户之间的好友关系和互动，处理好友请求及后续管理。
-CREATE TABLE users (
-id SERIAL PRIMARY KEY,
-unique_id VARCHAR(20) UNIQUE NOT NULL,
-nickname VARCHAR(100) NOT NULL
-);
 
-CREATE TABLE friendships (
-id SERIAL PRIMARY KEY,
-user_id INT NOT NULL,
-friend_id INT NOT NULL,
-status INT DEFAULT 0,  -- 0: 待审批, 1: 已添加, 2: 已拒绝
-remark VARCHAR(100),   -- 好友备注
-created_at TIMESTAMP DEFAULT NOW(),
-updated_at TIMESTAMP DEFAULT NOW(),
-FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE
-);
 
 ### 3. 聊天服务
 **功能：**

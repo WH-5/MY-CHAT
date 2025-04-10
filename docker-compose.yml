@@ -1,6 +1,16 @@
-version: "3.8"
+#version: "3.8"
 
 services:
+  consul:
+    image: hashicorp/consul:1.20.5  # 使用最新版本
+    container_name: consul
+    ports:
+      - "8500:8500"       # Web UI
+      - "8600:8600/udp"   # DNS
+    command: "consul agent -dev -client=0.0.0.0"
+    networks:
+      - chat-network
+
   database:
     image: postgres:latest
     container_name: database
@@ -47,19 +57,38 @@ services:
 #    build: .
     volumes:
       - ./configs:/data/conf
-    container_name: user
+    container_name: user-service
     restart: always
     depends_on:
       database:
         condition: service_healthy
       redis:
         condition: service_healthy
-#    environment:
-#      - DATABASE_URL=postgres://root:whwhwhwhwhwhwhwh12321wh@database:5432/user_service?sslmode=disable
-#      - REDIS_URL=redis://:123456@redis:6379/0
+      consul:
+        condition: service_started
     ports:
       - "8000:8000"
       - "9000:9000"
+    networks:
+      - chat-network
+
+  friend-service:
+    image: friend-service:latest
+    #    build: .
+#    volumes:
+#      - ./configs:/data/conf
+    container_name: friend-service
+    restart: always
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      consul:
+        condition: service_started
+    ports:
+      - "8001:8001"
+      - "9001:9001"
     networks:
       - chat-network
 
