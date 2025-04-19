@@ -86,9 +86,35 @@ services:
         condition: service_healthy
       consul:
         condition: service_started
+      user-service:
+        condition: service_started
+      push-service:
+        condition: service_started
     ports:
       - "8001:8001"
       - "9001:9001"
+    networks:
+      - chat-network
+
+  push-service:
+    image: push-service:latest
+    #    build: .
+    #    volumes:
+    #      - ./configs:/data/conf
+    container_name: push-service
+    restart: always
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      consul:
+        condition: service_started
+      user-service:
+        condition: service_started
+    ports:
+      - "8002:8002"
+      - "9002:9002"
     networks:
       - chat-network
 
